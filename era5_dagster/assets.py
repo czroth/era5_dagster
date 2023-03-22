@@ -1,11 +1,11 @@
 import datetime as dt
 from urllib.request import urlopen
 
+import numpy as np
 import xarray as xr
-from dagster import DailyPartitionsDefinition, asset
+from dagster import DailyPartitionsDefinition, MonthlyPartitionsDefinition, asset
 
 from era5_dagster.ecmwf_exceptions import ECMWFRequestException, ECMWFRetrieveException
-
 
 era5_daily_partition_def = DailyPartitionsDefinition(
     start_date="2023-03-01",
@@ -46,3 +46,23 @@ def era5_daily_temperature(context) -> xr.Dataset:
         raise ECMWFRetrieveException(e)
 
     return ds
+
+
+@asset(
+    partitions_def=era5_daily_partition_def,
+)
+def era5_daily_mean_temperature(era5_daily_temperature: xr.Dataset) -> float:
+    """Compute the daily ERA5 mean global temperature at 1000hPa."""
+    return float(era5_daily_temperature.t.mean())
+
+
+@asset(
+    partitions_def=MonthlyPartitionsDefinition(
+        start_date=era5_daily_partition_def.start,
+    ),
+)
+def era5_monthly_mean_temperature(context, era5_daily_mean_temperature: dict[str, float]) -> float:
+    """Compute the daily ERA5 mean global temperature at 1000hPa."""
+    mean_value = np.array(list(era5_daily_mean_temperature.values())).mean()
+    context.log.info(f"Monthly mean temperature: {mean_value-273.15:.2f}℃")
+    return mean_value
