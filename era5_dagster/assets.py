@@ -8,7 +8,7 @@ from dagster import DailyPartitionsDefinition, MonthlyPartitionsDefinition, asse
 from era5_dagster.ecmwf_exceptions import ECMWFRequestException, ECMWFRetrieveException
 
 era5_daily_partition_def = DailyPartitionsDefinition(
-    start_date="2023-03-01",
+    start_date="2023-01-01",
     end_offset=-6,
 )
 
@@ -16,6 +16,7 @@ era5_daily_partition_def = DailyPartitionsDefinition(
 @asset(
     required_resource_keys={"cds_api"},
     partitions_def=era5_daily_partition_def,
+    io_manager_key="xarray_manager",
 )
 def era5_daily_temperature(context) -> xr.Dataset:
     """Retrieve daily ERA5 temperature data."""

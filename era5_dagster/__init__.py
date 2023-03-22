@@ -6,10 +6,12 @@ from dagster import (
 )
 
 from . import assets
+from .iomanagers import xarray_fs_io_manager
 from .resources import cds_api_resource
 
 resource_definitions = {
     "cds_api": cds_api_resource,
+    "xarray_manager": xarray_fs_io_manager,
 }
 
 
